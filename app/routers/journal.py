@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status, HTTPException, Response
 from sqlalchemy.orm import Session
 from ..db.database import get_db
-from typing import List
+from typing import List, Optional
 from ..models import models,schema
 from ..utils import oauth2
 
@@ -10,8 +10,8 @@ router = APIRouter(prefix='/journals', tags=['Journals'])
 
 
 @router.get('/', response_model=List[schema.Journal])
-def get_journal(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    posts = db.query(models.Journals).all()
+def get_journal(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 10, offset: int = 0, search: Optional[str] = "" ):
+    posts = db.query(models.Journals).filter(models.Journals.title.contains(search)).limit(limit).offset(offset).all()
     return posts
 
 @router.post('/',status_code=status.HTTP_201_CREATED, response_model=schema.Journal)
